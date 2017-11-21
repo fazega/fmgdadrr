@@ -8,9 +8,11 @@ Created on Mon Nov 13 14:17:27 2017
 from pandas import read_csv
 import numpy as np
 import pandas as pd
-from sklearn.neighbors import KNeighborsClassifier
+from sklearn.neighbors import KNeighborsRegressor
+from sklearn import tree
 from sklearn.preprocessing import Imputer
 from sklearn.neural_network import MLPRegressor
+from sklearn.linear_model import LinearRegression
 
 import time
 
@@ -31,18 +33,7 @@ def initialise_dataset(lien, n):
     dataset_sansheader=dataset_sansheader.replace(-1.0000,np.nan)
     return dataset_sansheader,header
 
-def analyse(test,train):
-    #K nearest neighbours
-    target=train[:,1]
-    test_epure=train[:,2:]
-    for weights in ['uniform', 'distance']:
-        # we create an instance of Neighbours Classifier and fit the data.
-        clf = KNeighborsClassifier(10, weights=weights)
-        clf.fit(test_epure, target)
-    Z = clf.predict(test[:,1:])
-    print(Z)
-
-def analyse_MLP(test, train, cv_prop):
+def analyse(test, train, cv_prop, type="MLP"):
     t = time.time()
     cv_train = int(cv_prop*train.shape[0])
     entries = train[0:cv_train, 2:]
@@ -51,7 +42,15 @@ def analyse_MLP(test, train, cv_prop):
     print(len(entries))
     print(sum(results))
     print(len(results))
-    clf = MLPRegressor(solver='adam', alpha=1e-8, activation='logistic', tol=1e-8, hidden_layer_sizes=(30,10,20))
+    clf = None
+    if(type == "MLP"):
+        clf = MLPRegressor(solver='adam', alpha=1e-8, activation='logistic', tol=1e-8, hidden_layer_sizes=(30,10,20))
+    elif(type == "KN"):
+        clf = KNeighborsRegressor(3, weights='distance')
+    elif(type == "TREE"):
+        clf = tree.DecisionTreeRegressor() #DON'T WORK, CLASSIFIER ?
+    elif(type == "LINEAR"):
+        clf = LinearRegression()
     clf.fit(entries, results)
 
     print("Cross Validation ...")
@@ -59,7 +58,7 @@ def analyse_MLP(test, train, cv_prop):
     print("Estimated normalized gini : "+str(gini_normalized(train[cv_train:,1], cv_result)))
 
     Z = clf.predict(test[:,1:])
-    print(str(time.time()-t)+" seconds to achieve MLP.")
+    print(str(time.time()-t)+" seconds to achieve "+type+".")
     return [[int(test[i,0]), max(0,Z[i])] for i in range(len(Z))]
 
 def gini(actual, pred, cmpcol = 0, sortcol = 1):
@@ -77,7 +76,7 @@ def gini_normalized(a, p):
 
 
 def export_csv(result):
-    np.savetxt('result.csv', result, fmt='%i,%f', header="id,target")
+    np.savetxt('result.csv', result, fmt='%i,%f', header="id,target", comments='')
 
 print("Loading data ...")
 
@@ -93,8 +92,8 @@ imputer = imputer.fit(dtst_train)
 dtst_train=np.transpose(imputer.transform(dtst_train))
 print("Train loaded.")
 
-print("Analyzing with MLP ...")
-result = analyse_MLP((dtst_test),(dtst_train), 0.7)
+print("Analyzing with LINEAR ...")
+result = analyse((dtst_test),(dtst_train), 0.7, 'LINEAR')
 print("Exporting result in csv ...")
 export_csv(result)
 print("Result exported.")
