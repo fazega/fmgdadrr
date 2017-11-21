@@ -51,7 +51,7 @@ def analyse_MLP(test, train, cv_prop):
     print(len(entries))
     print(sum(results))
     print(len(results))
-    clf = MLPRegressor(solver='adam', alpha=1e-5, activation='logistic', tol=1e-6, hidden_layer_sizes=(20, 10, 10))
+    clf = MLPRegressor(solver='adam', alpha=1e-8, activation='logistic', tol=1e-8, hidden_layer_sizes=(30,10,20))
     clf.fit(entries, results)
 
     print("Cross Validation ...")
@@ -60,7 +60,7 @@ def analyse_MLP(test, train, cv_prop):
 
     Z = clf.predict(test[:,1:])
     print(str(time.time()-t)+" seconds to achieve MLP.")
-    return [[int(test[i,0]), Z[i]] for i in range(len(Z))]
+    return [[int(test[i,0]), max(0,Z[i])] for i in range(len(Z))]
 
 def gini(actual, pred, cmpcol = 0, sortcol = 1):
      assert( len(actual) == len(pred) )
