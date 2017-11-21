@@ -42,21 +42,38 @@ def analyse(test,train):
     Z = clf.predict(test[:,1:])
     print(Z)
 
-def analyse_MLP(test, train):
+def analyse_MLP(test, train, cv_prop):
     t = time.time()
-    entries = train[:, 2:]
-    results = train[:,1]
+    cv_train = int(cv_prop*train.shape[0])
+    entries = train[0:cv_train, 2:]
+    results = train[0:cv_train,1]
     print(entries[0])
     print(len(entries))
     print(sum(results))
     print(len(results))
-    clf = MLPRegressor(solver='lbfgs', alpha=1e-5,activation='logistic', hidden_layer_sizes=(10,10,10))
+    clf = MLPRegressor(solver='adam', alpha=1e-5, activation='logistic', tol=1e-6, hidden_layer_sizes=(20, 10, 10))
     clf.fit(entries, results)
 
+    print("Cross Validation ...")
+    cv_result = clf.predict(train[cv_train:,2:])
+    print("Estimated normalized gini : "+str(gini_normalized(train[cv_train:,1], cv_result)))
+
     Z = clf.predict(test[:,1:])
-    print(sum(Z))
     print(str(time.time()-t)+" seconds to achieve MLP.")
     return [[int(test[i,0]), Z[i]] for i in range(len(Z))]
+
+def gini(actual, pred, cmpcol = 0, sortcol = 1):
+     assert( len(actual) == len(pred) )
+     all = np.asarray(np.c_[ actual, pred, np.arange(len(actual)) ], dtype=np.float)
+     all = all[ np.lexsort((all[:,2], -1*all[:,1])) ]
+     totalLosses = all[:,0].sum()
+     giniSum = all[:,0].cumsum().sum() / totalLosses
+
+     giniSum -= (len(actual) + 1) / 2.
+     return giniSum / len(actual)
+
+def gini_normalized(a, p):
+     return gini(a, p) / gini(a, a)
 
 
 def export_csv(result):
@@ -77,7 +94,7 @@ dtst_train=np.transpose(imputer.transform(dtst_train))
 print("Train loaded.")
 
 print("Analyzing with MLP ...")
-result = analyse_MLP((dtst_test),(dtst_train))
+result = analyse_MLP((dtst_test),(dtst_train), 0.7)
 print("Exporting result in csv ...")
 export_csv(result)
 print("Result exported.")
