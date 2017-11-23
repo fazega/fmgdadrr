@@ -61,7 +61,15 @@ def analyse(test, train, cv_prop, type="MLP"):
     elif(type == "RBF"):
         clf = SVR(kernel='rbf', C=1e3, gamma='auto')
     elif(type == "XGBOOST"):
-        clf = XGBRegressor(min_child_weight=10.0, max_depth=7, max_delta_step=1.8, colsample_bytree=0.4, subsample=0.8, learning_rate=0.025, gamma=0.65)
+        clf = XGBRegressor(objective='binary:logistic',
+            n_estimators=300,
+            min_child_weight=10.0,
+            max_depth=7,
+            max_delta_step=1.8,
+            colsample_bytree=0.4,
+            subsample=0.8,
+            learning_rate=0.025,
+            gamma=0.65)
     clf.fit(entries, results)
 
     print("Cross Validation ...")
