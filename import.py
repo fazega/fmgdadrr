@@ -12,7 +12,9 @@ from sklearn.neighbors import KNeighborsRegressor
 from sklearn import tree
 from sklearn.preprocessing import Imputer
 from sklearn.neural_network import MLPRegressor
-from sklearn.linear_model import LinearRegression
+from sklearn.linear_model import LinearRegression, Ridge, Lasso, BayesianRidge
+from sklearn.svm import SVR
+from xgboost import XGBRegressor
 
 import time
 
@@ -33,6 +35,11 @@ def initialise_dataset(lien, n):
     dataset_sansheader=dataset_sansheader.replace(-1.0000,np.nan)
     return dataset_sansheader,header
 
+def gini_xgb(preds, dtrain):
+    labels = dtrain.get_label()
+    gini_score = gini_normalized(labels, preds)
+    return 'gini', gini_score
+
 def analyse(test, train, cv_prop, type="MLP"):
     t = time.time()
     cv_train = int(cv_prop*train.shape[0])
@@ -50,7 +57,11 @@ def analyse(test, train, cv_prop, type="MLP"):
     elif(type == "TREE"):
         clf = tree.DecisionTreeRegressor() #DON'T WORK, CLASSIFIER ?
     elif(type == "LINEAR"):
-        clf = LinearRegression()
+        clf = BayesianRidge()
+    elif(type == "RBF"):
+        clf = SVR(kernel='rbf', C=1e3, gamma='auto')
+    elif(type == "XGBOOST"):
+        clf = XGBRegressor(min_child_weight=10.0, max_depth=7, max_delta_step=1.8, colsample_bytree=0.4, subsample=0.8, learning_rate=0.025, gamma=0.65)
     clf.fit(entries, results)
 
     print("Cross Validation ...")
@@ -92,8 +103,8 @@ imputer = imputer.fit(dtst_train)
 dtst_train=np.transpose(imputer.transform(dtst_train))
 print("Train loaded.")
 
-print("Analyzing with LINEAR ...")
-result = analyse((dtst_test),(dtst_train), 0.7, 'LINEAR')
+print("Analyzing ...")
+result = analyse((dtst_test),(dtst_train), 0.7, 'XGBOOST')
 print("Exporting result in csv ...")
 export_csv(result)
 print("Result exported.")
