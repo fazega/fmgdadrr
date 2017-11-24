@@ -70,6 +70,20 @@ def analyse(test, train, cv_prop, type="MLP"):
             subsample=0.8,
             learning_rate=0.025,
             gamma=0.65)
+        #xgb_params = {'eta': 0.03,
+        #      'max_depth': 7,
+        #      'subsample': 1.0,
+        #      'colsample_bytree': 0.4,
+        #      'min_child_weight': 10,
+        #      'objective': 'binary:logistic',
+        #      'eval_metric': 'auc',
+        #      'seed': 99,
+        #      'silent': True}
+        #d_train = xgb.DMatrix(entries, results)
+        #d_valid = xgb.DMatrix(train[cv_train:,2:],train[cv_train:,1])
+
+        #watchlist = [(d_train, 'train'), (d_valid, 'valid')]
+        #clf = xgb.train(xgb_params, d_train, 1000,  watchlist, feval=gini_xgb, maximize=True, verbose_eval=100, early_stopping_rounds=200)
     clf.fit(entries, results)
 
     print("Cross Validation ...")
