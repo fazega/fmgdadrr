@@ -15,6 +15,9 @@ from sklearn.neural_network import MLPRegressor
 from sklearn.linear_model import LinearRegression, Ridge, Lasso, BayesianRidge
 from sklearn.svm import SVR
 from xgboost import XGBRegressor
+from sklearn.ensemble import AdaBoostRegressor
+from sklearn.tree import DecisionTreeRegressor
+from sklearn.ensemble import GradientBoostingClassifier
 
 import time
 
@@ -60,6 +63,10 @@ def analyse(test, train, cv_prop, type="MLP"):
         clf = BayesianRidge()
     elif(type == "RBF"):
         clf = SVR(kernel='rbf', C=1e3, gamma='auto')
+    elif(type == "ADABOOST"):
+        clf = AdaBoostRegressor(DecisionTreeRegressor(max_depth=7, min_samples_leaf=4 ,max_features=0.2), learning_rate=0.010, n_estimators=100)
+    elif(type == "GRADBOOST"):
+        clf = GradientBoostingClassifier(n_estimators=100, max_depth=3, min_samples_leaf=4, max_features=0.2, random_state=0)
     elif(type == "XGBOOST"):
         clf = XGBRegressor(objective='binary:logistic',
             n_estimators=300,
